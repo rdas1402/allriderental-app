@@ -1,17 +1,26 @@
 package com.ar.allRideRental.controller;
 
+import com.ar.allRideRental.dto.BookingResponse;
+import com.ar.allRideRental.model.Booking;
+import com.ar.allRideRental.repository.UserRepository;
+import com.ar.allRideRental.repository.VehicleRepository;
+import com.ar.allRideRental.service.BookingService;
 import com.ar.allRideRental.service.UserService;
 import com.ar.allRideRental.service.OTPService;
 import com.ar.allRideRental.model.User;
+import com.ar.allRideRental.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +31,18 @@ public class AuthController {
 
     @Autowired
     private OTPService otpService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    VehicleRepository vehicleRepository;
+
+    @Autowired
+    VehicleService vehicleService;
 
     // Inner class to store OTP with timestamp
     private static class OTPData {
@@ -325,22 +346,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/profile/{phoneNumber}")
-    public ResponseEntity<?> getUserProfile(@PathVariable String phoneNumber) {
-        try {
-            var user = userService.getUserByPhone(phoneNumber);
-            if (user.isPresent()) {
-                return ResponseEntity.ok(user.get());
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Failed to get user profile: " + e.getMessage()
-            ));
-        }
-    }
-
     @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> userData) {
         try {
@@ -373,14 +378,70 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/bookings/{phoneNumber}")
-    public ResponseEntity<?> getUserBookings(@PathVariable String phoneNumber) {
+    // Get user bookings via phone number
+    @GetMapping("/bookings/{phone}")
+    public ResponseEntity<?> getUserBookings(@PathVariable String phone) {
         try {
-            var bookings = userService.getUserBookings(phoneNumber);
-            return ResponseEntity.ok(bookings);
+            List<Booking> bookings = bookingService.getBookingsByCustomerPhone(phone);
+
+            // Convert to DTOs with vehicle images
+            List<BookingResponse> bookingDTOs = bookings.stream()
+                    .map(booking -> {
+                        // Get vehicle image from vehicle service
+                        String vehicleImageUrl = vehicleService.getVehicleImageUrl(booking.getVehicleId());
+                        return new BookingResponse(booking, vehicleImageUrl);
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "bookings", bookingDTOs
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Failed to get user bookings: " + e.getMessage()
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    // Get user profile with bookings
+    @GetMapping("/profile/{phone}")
+    public ResponseEntity<?> getUserProfile(@PathVariable String phone) {
+        try {
+            Optional<User> user = userRepository.findByPhone(phone);
+            if (user.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "User not found"
+                ));
+            }
+
+            List<Booking> bookings = bookingService.getBookingsByCustomerPhone(phone);
+
+            // Convert to DTOs with VehicleRepository
+            System.out.println("img : "+bookings.toString());
+            List<BookingResponse> bookingResponses = bookings.stream()
+                    .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+                    .collect(Collectors.toList());
+
+            System.out.println("bookingResponses : "+bookingResponses.toString());
+            Map<String, Object> profile = Map.of(
+                    "user", user.get(),
+                    "bookings", bookingResponses,
+                    "totalBookings", bookings.size(),
+                    "activeBookings", bookings.stream().filter(b ->
+                            b.getStatus().equals("confirmed") || b.getStatus().equals("active")).count()
+            );
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "profile", profile
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
             ));
         }
     }

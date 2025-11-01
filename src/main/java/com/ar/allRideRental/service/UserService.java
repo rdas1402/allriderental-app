@@ -32,11 +32,11 @@ public class UserService {
         return userRepository.save(user);
     }
     
-    public List<Booking> getUserBookings(String phoneNumber) {
-        Optional<User> user = userRepository.findByPhone(phoneNumber);
-        return user.map(u -> bookingRepository.findByUser(u))
-                  .orElse(List.of());
-    }
+//    public List<Booking> getUserBookings(String phoneNumber) {
+//        Optional<User> user = userRepository.findByPhone(phoneNumber);
+//        return user.map(u -> bookingRepository.findByUser(u))
+//                  .orElse(List.of());
+//    }
 
     public User updateUserProfile(String phone, String name, String email, LocalDate dob) {
         Optional<User> existingUser = userRepository.findByPhone(phone);

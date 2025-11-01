@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
@@ -19,4 +20,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     long countByTypeAndIsAvailableTrue(String type);
     long countByCityAndIsAvailableTrue(String city);
     long countByCityAndTypeAndIsAvailableTrue(String city, String type);
+    Optional<Vehicle> findById(Long id);
+    Optional<Vehicle> findByIdAndName(Long id, String name);
 }

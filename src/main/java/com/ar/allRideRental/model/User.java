@@ -3,8 +3,6 @@ package com.ar.allRideRental.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -23,8 +21,9 @@ public class User {
     @Column(name = "join_date")
     private LocalDate joinDate;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Booking> bookings = new ArrayList<>();
+    // REMOVED: @OneToMany relationship that was causing the error
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<Booking> bookings = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -72,8 +71,9 @@ public class User {
     public LocalDate getJoinDate() { return joinDate; }
     public void setJoinDate(LocalDate joinDate) { this.joinDate = joinDate; }
 
-    public List<Booking> getBookings() { return bookings; }
-    public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
+    // REMOVED: Bookings getter and setter
+    // public List<Booking> getBookings() { return bookings; }
+    // public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

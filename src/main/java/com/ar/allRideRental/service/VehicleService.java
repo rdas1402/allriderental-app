@@ -79,4 +79,11 @@ public class VehicleService {
     public long getVehicleCountByCityAndType(String city, String type) {
         return vehicleRepository.countByCityAndTypeAndIsAvailableTrue(city, type);
     }
+
+    // Add this method to get vehicle image URL
+    public String getVehicleImageUrl(Long vehicleId) {
+        return vehicleRepository.findById(vehicleId)
+                .map(Vehicle::getImageUrl)
+                .orElse("/images/default-vehicle.jpg"); // Fallback image
+    }
 }
