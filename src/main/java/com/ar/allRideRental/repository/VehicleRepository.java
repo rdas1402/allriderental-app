@@ -21,5 +21,4 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     long countByCityAndIsAvailableTrue(String city);
     long countByCityAndTypeAndIsAvailableTrue(String city, String type);
     Optional<Vehicle> findById(Long id);
-    Optional<Vehicle> findByIdAndName(Long id, String name);
 }
