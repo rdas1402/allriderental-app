@@ -65,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                     // Adventure Bikes
                     new Vehicle("Ducati Panigale V4", "Bike", "₹2,800/day",
                             Arrays.asList("Superbike", "1103cc", "Race Mode"), 4.9, "Guwahati",
-                            "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"),
+                            "https://paultan.org/image/2019/06/2019-Ducati-Panigale-V4-R-11.jpg"),
 
                     new Vehicle("Harley Davidson Street Glide", "Bike", "₹3,200/day",
                             Arrays.asList("Cruiser", "1868cc", "Tour Package"), 4.7, "Sivsagar",
