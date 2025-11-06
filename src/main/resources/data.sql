@@ -48,6 +48,43 @@ INSERT INTO vehicle_availability (vehicle_id, start_date, end_date, is_available
                                                                                               ('1', '2025-11-10', '2025-11-12', false, 'Booked by Rupam Das'),
                                                                                               ('5', '2025-11-15', '2025-11-16', false, 'Booked by Nishita Dutta'),
                                                                                               ('2', '2025-11-22', '2025-11-23', false, 'Maintenance');
+-- Add purpose column with default value 'rent'
+ALTER TABLE vehicles ADD COLUMN purpose VARCHAR(10) DEFAULT 'rent' NOT NULL;
+
+-- Update existing vehicles (all existing will be for rent only)
+UPDATE vehicles SET purpose = 'rent' WHERE purpose IS NULL;
+
+-- Add check constraint for valid purposes (optional)
+ALTER TABLE vehicles ADD CONSTRAINT chk_purpose CHECK (purpose IN ('rent', 'sale', 'both'));
+
+-- Example: Set some vehicles for sale only
+UPDATE vehicles SET purpose = 'sale' WHERE id IN (1, 3, 5);
+
+-- Example: Set some vehicles for both rent and sale
+UPDATE vehicles SET purpose = 'both' WHERE id IN (2, 4, 6);
+
+-- Add new price columns
+ALTER TABLE vehicles ADD COLUMN rent_price VARCHAR(50);
+ALTER TABLE vehicles ADD COLUMN sale_price VARCHAR(50);
+
+-- Migrate existing price data to rent_price
+UPDATE vehicles SET rent_price = price WHERE rent_price IS NULL;
+
+-- Set default sale prices for existing vehicles
+UPDATE vehicles SET sale_price =
+                        CASE
+                            WHEN type = 'Car' THEN '₹8,50,000'
+                            WHEN type = 'Bike' THEN '₹1,20,000'
+                            ELSE '₹0'
+                            END
+WHERE sale_price IS NULL;
+
+-- Set some vehicles for sale
+UPDATE vehicles SET purpose = 'sale', sale_price = '₹12,50,000' WHERE id IN (1, 3, 5);
+UPDATE vehicles SET purpose = 'both', sale_price = '₹9,75,000' WHERE id IN (2, 4, 6);
+
+-- The rest remain as 'rent' with their original rent prices
+
 
 -- Log data insertion
 SELECT '✅ Database initialized successfully!' as status;

@@ -420,35 +420,35 @@ public class AuthController {
             User currentUser = user.get();
             boolean isAdmin = "admin".equals(currentUser.getRole()) || Boolean.TRUE.equals(currentUser.getIsAdmin());
 
-            if (isAdmin) {
-                // For admin users, use the existing admin endpoints to get all bookings
-                List<Booking> upcomingBookings = bookingService.getUpcomingBookingsForAdmin();
-                List<Booking> completedBookings = bookingService.getCompletedBookingsForAdmin();
-
-                // Convert to DTOs
-                List<BookingResponse> upcomingResponses = upcomingBookings.stream()
-                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
-                        .collect(Collectors.toList());
-
-                List<BookingResponse> completedResponses = completedBookings.stream()
-                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
-                        .collect(Collectors.toList());
-
-                Map<String, Object> profile = Map.of(
-                        "user", currentUser,
-                        "upcomingBookings", upcomingResponses,
-                        "completedBookings", completedResponses,
-                        "totalBookings", upcomingBookings.size() + completedBookings.size(),
-                        "upcomingCount", upcomingBookings.size(),
-                        "completedCount", completedBookings.size(),
-                        "isAdmin", true
-                );
-
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "profile", profile
-                ));
-            } else {
+//            if (isAdmin) {
+//                // For admin users, use the existing admin endpoints to get all bookings
+//                List<Booking> upcomingBookings = bookingService.getUpcomingBookingsForAdmin();
+//                List<Booking> completedBookings = bookingService.getCompletedBookingsForAdmin();
+//
+//                // Convert to DTOs
+//                List<BookingResponse> upcomingResponses = upcomingBookings.stream()
+//                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+//                        .collect(Collectors.toList());
+//
+//                List<BookingResponse> completedResponses = completedBookings.stream()
+//                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+//                        .collect(Collectors.toList());
+//
+//                Map<String, Object> profile = Map.of(
+//                        "user", currentUser,
+//                        "upcomingBookings", upcomingResponses,
+//                        "completedBookings", completedResponses,
+//                        "totalBookings", upcomingBookings.size() + completedBookings.size(),
+//                        "upcomingCount", upcomingBookings.size(),
+//                        "completedCount", completedBookings.size(),
+//                        "isAdmin", true
+//                );
+//
+//                return ResponseEntity.ok(Map.of(
+//                        "success", true,
+//                        "profile", profile
+//                ));
+//            } else {
                 // Regular user flow (existing code)
                 List<Booking> bookings = bookingService.getBookingsByCustomerPhone(phone);
 
@@ -469,7 +469,7 @@ public class AuthController {
                         "success", true,
                         "profile", profile
                 ));
-            }
+//            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(

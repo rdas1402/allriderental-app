@@ -18,8 +18,12 @@ public class Vehicle {
     @Column(name = "type", nullable = false)
     private String type;
 
-    @Column(name = "price", nullable = false)
-    private String price;
+    // UPDATED: Separate price fields for rent and sale
+    @Column(name = "rent_price")
+    private String rentPrice;
+
+    @Column(name = "sale_price")
+    private String salePrice;
 
     @Column(name = "rating")
     private Double rating = 0.0;
@@ -51,6 +55,10 @@ public class Vehicle {
     @Column(name = "transmission")
     private String transmission;
 
+    // NEW: Purpose field - can be 'rent', 'sale', or 'both'
+    @Column(name = "purpose", nullable = false)
+    private String purpose = "rent";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -59,35 +67,37 @@ public class Vehicle {
 
     // One-to-Many relationship with VehicleFeature
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id") // This maps to the vehicle_id column in vehicle_features table
+    @JoinColumn(name = "vehicle_id")
     private List<VehicleFeature> features = new ArrayList<>();
 
     // Constructors
     public Vehicle() {
     }
 
-    public Vehicle(String name, String type, String price, String city, String imageUrl) {
+    public Vehicle(String name, String type, String rentPrice, String city, String imageUrl) {
         this.name = name;
         this.type = type;
-        this.price = price;
+        this.rentPrice = rentPrice;
         this.city = city;
         this.imageUrl = imageUrl;
         this.available = true;
         this.underMaintenance = false;
         this.status = "available";
         this.rating = 0.0;
+        this.purpose = "rent";
     }
 
-    public Vehicle(String name, String type, String price, Double rating, String city, String imageUrl) {
+    public Vehicle(String name, String type, String rentPrice, Double rating, String city, String imageUrl) {
         this.name = name;
         this.type = type;
-        this.price = price;
+        this.rentPrice = rentPrice;
         this.rating = rating;
         this.city = city;
         this.imageUrl = imageUrl;
         this.available = true;
         this.underMaintenance = false;
         this.status = "available";
+        this.purpose = "rent";
     }
 
     // Getters and Setters
@@ -115,12 +125,34 @@ public class Vehicle {
         this.type = type;
     }
 
+    // UPDATED: Price getters and setters
+    public String getRentPrice() {
+        return rentPrice;
+    }
+
+    public void setRentPrice(String rentPrice) {
+        this.rentPrice = rentPrice;
+    }
+
+    public String getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(String salePrice) {
+        this.salePrice = salePrice;
+    }
+
+    // Backward compatibility - get price based on purpose
     public String getPrice() {
-        return price;
+        if ("sale".equals(purpose) && salePrice != null) {
+            return salePrice;
+        }
+        return rentPrice != null ? rentPrice : "₹0/day";
     }
 
     public void setPrice(String price) {
-        this.price = price;
+        // For backward compatibility, set rent price
+        this.rentPrice = price;
     }
 
     public Double getRating() {
@@ -203,6 +235,15 @@ public class Vehicle {
         this.transmission = transmission;
     }
 
+    // NEW: Purpose getter and setter
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -219,7 +260,6 @@ public class Vehicle {
         this.updatedAt = updatedAt;
     }
 
-    // Features getters and setters
     public List<VehicleFeature> getFeatures() {
         return features;
     }
@@ -249,6 +289,40 @@ public class Vehicle {
         }
     }
 
+    // Helper methods for purpose
+    public boolean isForRent() {
+        return "rent".equals(purpose) || "both".equals(purpose);
+    }
+
+    public boolean isForSale() {
+        return "sale".equals(purpose) || "both".equals(purpose);
+    }
+
+    public boolean isDualPurpose() {
+        return "both".equals(purpose);
+    }
+
+    // Helper method to get appropriate price based on context
+    public String getDisplayPrice() {
+        if ("sale".equals(purpose)) {
+            return salePrice != null ? salePrice : "Price on request";
+        } else if ("rent".equals(purpose)) {
+            return rentPrice != null ? rentPrice : "₹0/day";
+        } else {
+            // For dual-purpose, show both prices
+            return (rentPrice != null ? rentPrice : "₹0/day") + " | " + (salePrice != null ? salePrice : "Price on request");
+        }
+    }
+
+    // Helper method to get price for specific purpose
+    public String getPriceForPurpose(String purpose) {
+        if ("sale".equals(purpose)) {
+            return salePrice != null ? salePrice : "Price on request";
+        } else {
+            return rentPrice != null ? rentPrice : "₹0/day";
+        }
+    }
+
     @PreUpdate
     public void setUpdatedAt() {
         this.updatedAt = LocalDateTime.now();
@@ -260,13 +334,15 @@ public class Vehicle {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +
-                ", price='" + price + '\'' +
+                ", rentPrice='" + rentPrice + '\'' +
+                ", salePrice='" + salePrice + '\'' +
                 ", rating=" + rating +
                 ", city='" + city + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", available=" + available +
                 ", underMaintenance=" + underMaintenance +
                 ", status='" + status + '\'' +
+                ", purpose='" + purpose + '\'' +
                 ", capacity=" + capacity +
                 ", description='" + description + '\'' +
                 ", fuelType='" + fuelType + '\'' +

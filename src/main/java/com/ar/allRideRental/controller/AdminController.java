@@ -33,6 +33,9 @@ public class AdminController {
     @Autowired
     private VehicleAvailabilityService vehicleAvailabilityService;
 
+    @Autowired
+    private VehicleService  vehicleService;
+
     // Check if user is admin
     @GetMapping("/check-role/{phone}")
     public ResponseEntity<?> checkAdminRole(@PathVariable String phone) {
@@ -385,6 +388,72 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     Map.of("success", false, "message", "Error clearing conflicts: " + e.getMessage())
+            );
+        }
+    }
+
+    // Get available purpose options from existing vehicles
+    @GetMapping("/vehicles/{vehicleId}/purpose-options")
+    public ResponseEntity<?> getAvailablePurposeOptions(@PathVariable String vehicleId) {
+        try {
+            // Validate vehicle exists
+            if (!vehicleService.vehicleExists(vehicleId)) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("success", false, "message", "Vehicle not found with id: " + vehicleId)
+                );
+            }
+
+            // Get purpose options from existing vehicles data
+            List<Map<String, String>> purposeOptions = vehicleService.getAvailablePurposeOptions();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", purposeOptions);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "message", "Error fetching purpose options: " + e.getMessage())
+            );
+        }
+    }
+
+    // Update vehicle purpose
+    @PutMapping("/vehicles/{vehicleId}/purpose")
+    public ResponseEntity<?> updateVehiclePurpose(
+            @PathVariable String vehicleId,
+            @RequestBody Map<String, String> requestData) {
+        try {
+            String purpose = requestData.get("purpose");
+
+            // Validate purpose
+            if (!List.of("rent", "sale", "both").contains(purpose)) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("success", false, "message", "Invalid purpose. Must be 'rent', 'sale', or 'both'")
+                );
+            }
+
+            // Get the vehicle
+            Vehicle vehicle = vehicleService.getVehicleById(Long.parseLong(vehicleId))
+                    .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + vehicleId));
+
+            // Update the purpose
+            vehicle.setPurpose(purpose);
+            Vehicle updatedVehicle = vehicleService.updateVehicle(Long.parseLong(vehicleId), vehicle);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Vehicle purpose updated successfully");
+            response.put("vehicle", Map.of(
+                    "id", updatedVehicle.getId(),
+                    "name", updatedVehicle.getName(),
+                    "purpose", updatedVehicle.getPurpose()
+            ));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("success", false, "message", "Error updating vehicle purpose: " + e.getMessage())
             );
         }
     }
