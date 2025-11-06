@@ -2,6 +2,7 @@ package com.ar.allRideRental.repository;
 
 import com.ar.allRideRental.model.Booking;
 import com.ar.allRideRental.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +37,44 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // Get total revenue from completed bookings
     @Query("SELECT SUM(b.totalAmount) FROM Booking b WHERE b.status = 'completed'")
     Double getTotalRevenue();
+
+    List<Booking> findAllByOrderByBookingDateDesc(Pageable pageable);
+
+    @Query("SELECT b FROM Booking b WHERE b.endDate >= :today AND b.status = 'confirmed' ORDER BY b.startDate ASC")
+    List<Booking> findUpcomingBookings(@Param("today") LocalDate today, Pageable pageable);
+
+    @Query("SELECT b FROM Booking b WHERE b.endDate >= :today AND b.status = 'confirmed' ORDER BY b.startDate ASC")
+    List<Booking> findUpcomingBookings(@Param("today") LocalDate today);
+
+    List<Booking> findByStatusOrderByBookingDateDesc(String status, Pageable pageable);
+
+    List<Booking> findByStatusOrderByBookingDateDesc(String status);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.endDate >= :today AND b.status = 'confirmed'")
+    long countUpcomingBookings(@Param("today") LocalDate today);
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.vehicle.id = :vehicleId " +
+            "AND b.status NOT IN ('CANCELLED', 'REJECTED') " +
+            "AND ((b.startDate BETWEEN :startDate AND :endDate) " +
+            "OR (b.endDate BETWEEN :startDate AND :endDate) " +
+            "OR (b.startDate <= :startDate AND b.endDate >= :endDate))")
+    boolean existsByVehicleIdAndDateRange(@Param("vehicleId") Long vehicleId,
+                                          @Param("startDate") LocalDate startDate,
+                                          @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE " +
+            "b.vehicleId = :vehicleId AND " +
+            "b.status IN ('confirmed', 'active') AND " +
+            "b.startDate <= :date AND b.endDate >= :date")
+    boolean existsActiveBookingForDate(@Param("vehicleId") Long vehicleId,
+                                       @Param("date") LocalDate date);
+
+    // NEW: Check if active booking exists in period - THIS IS THE MISSING METHOD
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE " +
+            "b.vehicleId = :vehicleId AND " +
+            "b.status IN ('confirmed', 'active') AND " +
+            "b.startDate <= :endDate AND b.endDate >= :startDate")
+    boolean existsActiveBookingInPeriod(@Param("vehicleId") Long vehicleId,
+                                        @Param("startDate") LocalDate startDate,
+                                        @Param("endDate") LocalDate endDate);
 }

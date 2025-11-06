@@ -7,6 +7,7 @@ import com.ar.allRideRental.repository.BookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +23,10 @@ public class UserService {
     public boolean checkUserExists(String phoneNumber) {
         return userRepository.existsByPhone(phoneNumber);
     }
-    
-    public Optional<User> getUserByPhone(String phoneNumber) {
-        return userRepository.findByPhone(phoneNumber);
+
+    public User getUserByPhone(String phone) {
+        Optional<User> userOptional = userRepository.findByPhone(phone);
+        return userOptional.orElse(null);
     }
     
     public User createUser(String phone, String name, String email, LocalDate dob) {
@@ -49,4 +51,20 @@ public class UserService {
         }
         throw new RuntimeException("User not found with phone: " + phone);
     }
+
+    public long getTotalUsersCount() {
+        return userRepository.count();
+    }
+
+    public long getActiveUsersCount() {
+        // Assuming you have a way to determine active users
+        // This could be users who have booked in the last 30 days, or have isActive field
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        return userRepository.countActiveUsers(thirtyDaysAgo);
+    }
+
+    // Alternative if you have an isActive field
+//    public long getActiveUsersCount() {
+//        return userRepository.countByIsActive(true);
+//    }
 }

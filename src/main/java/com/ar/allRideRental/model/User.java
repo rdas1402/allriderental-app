@@ -18,25 +18,31 @@ public class User {
     private String email;
     private LocalDate dob;
 
-    @Column(name = "join_date")
-    private LocalDate joinDate;
+    @Column(name = "role")
+    private String role = "user";
 
-    // REMOVED: @OneToMany relationship that was causing the error
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // private List<Booking> bookings = new ArrayList<>();
+    @Column(name = "is_admin")
+    private Boolean isAdmin = false;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // Constructors
-    public User() {
-        this.joinDate = LocalDate.now();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    public User() {}
+
+    public User(String phone, String name, String email) {
+        this.phone = phone;
+        this.name = name;
+        this.email = email;
     }
 
     public User(String phone, String name, String email, LocalDate dob) {
-        this();
         this.phone = phone;
         this.name = name;
         this.email = email;
@@ -51,33 +57,31 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
 
     public String getName() { return name; }
-    public void setName(String name) {
-        this.name = name;
-        this.updatedAt = LocalDateTime.now();
-    }
+    public void setName(String name) { this.name = name; }
 
     public String getEmail() { return email; }
-    public void setEmail(String email) {
-        this.email = email;
-        this.updatedAt = LocalDateTime.now();
-    }
+    public void setEmail(String email) { this.email = email; }
 
     public LocalDate getDob() { return dob; }
-    public void setDob(LocalDate dob) {
-        this.dob = dob;
-        this.updatedAt = LocalDateTime.now();
-    }
+    public void setDob(LocalDate dob) { this.dob = dob; }
 
-    public LocalDate getJoinDate() { return joinDate; }
-    public void setJoinDate(LocalDate joinDate) { this.joinDate = joinDate; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    // REMOVED: Bookings getter and setter
-    // public List<Booking> getBookings() { return bookings; }
-    // public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
+    public Boolean getIsAdmin() { return isAdmin; }
+    public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @PreUpdate
+    public void setUpdatedAt() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

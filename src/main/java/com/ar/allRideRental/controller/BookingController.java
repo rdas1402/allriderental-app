@@ -86,26 +86,45 @@ public class BookingController {
     }
 
     // UPDATED: Get bookings by vehicle ID for date blocking - now using BookingResponse
-    @GetMapping("/vehicle/{vehicleId}")
-    public ResponseEntity<ApiResponse<List<BookingResponse>>> getBookingsByVehicle(@PathVariable Long vehicleId) {
+//    @GetMapping("/vehicle/{vehicleId}")
+//    public ResponseEntity<ApiResponse<List<BookingResponse>>> getBookingsByVehicle(@PathVariable Long vehicleId) {
+//        try {
+//            List<Booking> bookings = bookingService.getBookingsByVehicleId(vehicleId);
+//
+//            // Convert to BookingResponse to include image URLs
+//            List<BookingResponse> bookingResponses = bookings.stream()
+//                    .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+//                    .collect(Collectors.toList());
+//
+//            return ResponseEntity.ok(new ApiResponse<>(
+//                    true,
+//                    "Bookings fetched successfully",
+//                    bookingResponses
+//            ));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ApiResponse<>(
+//                            false,
+//                            "Error fetching bookings: " + e.getMessage(),
+//                            null
+//                    ));
+//        }
+//    }
+
+    @GetMapping("/vehicle/{vehicleId}/availability")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getVehicleAvailability(@PathVariable Long vehicleId) {
         try {
-            List<Booking> bookings = bookingService.getBookingsByVehicleId(vehicleId);
-
-            // Convert to BookingResponse to include image URLs
-            List<BookingResponse> bookingResponses = bookings.stream()
-                    .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
-                    .collect(Collectors.toList());
-
+            Map<String, Object> availabilityData = bookingService.getVehicleAvailabilityData(vehicleId);
             return ResponseEntity.ok(new ApiResponse<>(
                     true,
-                    "Bookings fetched successfully",
-                    bookingResponses
+                    "Vehicle availability data fetched successfully",
+                    availabilityData
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(
                             false,
-                            "Error fetching bookings: " + e.getMessage(),
+                            "Error fetching vehicle availability: " + e.getMessage(),
                             null
                     ));
         }

@@ -14,19 +14,19 @@ public class VehicleService {
     private VehicleRepository vehicleRepository;
     
     public List<Vehicle> getAllVehicles() {
-        return vehicleRepository.findByIsAvailableTrue();
+        return vehicleRepository.findByAvailableTrue();
     }
     
     public List<Vehicle> getVehiclesByCity(String city) {
-        return vehicleRepository.findByCityAndIsAvailableTrue(city);
+        return vehicleRepository.findByCityAndAvailableTrue(city);
     }
     
     public List<Vehicle> getVehiclesByType(String type) {
-        return vehicleRepository.findByTypeAndIsAvailableTrue(type);
+        return vehicleRepository.findByTypeAndAvailableTrue(type);
     }
     
     public List<Vehicle> getVehiclesByCityAndType(String city, String type) {
-        return vehicleRepository.findByCityAndTypeAndIsAvailableTrue(city, type);
+        return vehicleRepository.findByCityAndTypeAndAvailableTrue(city, type);
     }
     
     public List<String> getAvailableCities() {
@@ -53,7 +53,7 @@ public class VehicleService {
         vehicle.setCity(vehicleDetails.getCity());
         vehicle.setImageUrl(vehicleDetails.getImageUrl());
         vehicle.setDescription(vehicleDetails.getDescription());
-        vehicle.setAvailable(vehicleDetails.isAvailable());
+        vehicle.setAvailable(vehicleDetails.getAvailable());
         vehicle.setCapacity(vehicleDetails.getCapacity());
         vehicle.setFuelType(vehicleDetails.getFuelType());
         vehicle.setTransmission(vehicleDetails.getTransmission());
@@ -69,15 +69,15 @@ public class VehicleService {
     }
     
     public long getVehicleCountByType(String type) {
-        return vehicleRepository.countByTypeAndIsAvailableTrue(type);
+        return vehicleRepository.countByTypeAndAvailableTrue(type);
     }
     
     public long getVehicleCountByCity(String city) {
-        return vehicleRepository.countByCityAndIsAvailableTrue(city);
+        return vehicleRepository.countByCityAndAvailableTrue(city);
     }
     
     public long getVehicleCountByCityAndType(String city, String type) {
-        return vehicleRepository.countByCityAndTypeAndIsAvailableTrue(city, type);
+        return vehicleRepository.countByCityAndTypeAndAvailableTrue(city, type);
     }
 
     // Add this method to get vehicle image URL
@@ -86,4 +86,26 @@ public class VehicleService {
                 .map(Vehicle::getImageUrl)
                 .orElse("/images/default-vehicle.jpg"); // Fallback image
     }
+
+    public boolean vehicleExists(String vehicleId) {
+        return vehicleRepository.existsById(Long.valueOf(vehicleId));
+    }
+
+    public long getTotalVehiclesCount() {
+        return vehicleRepository.count();
+    }
+
+    public long getAvailableVehiclesCount() {
+        return vehicleRepository.countByAvailable(true);
+    }
+
+    public long getMaintenanceVehiclesCount() {
+        // Assuming you have a maintenance status field
+        return vehicleRepository.countByStatus("maintenance");
+    }
+
+//    // If you don't have a status field, you can use this alternative:
+//    public long getMaintenanceVehiclesCount() {
+//        return vehicleRepository.countByUnderMaintenance(true);
+//    }
 }

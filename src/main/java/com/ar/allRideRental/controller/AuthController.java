@@ -265,8 +265,8 @@ public class AuthController {
             response.put("exists", exists);
 
             if (exists) {
-                Optional<User> userOptional = userService.getUserByPhone(phoneNumber);
-                response.put("user", userOptional.orElse(null));
+                User userOptional = userService.getUserByPhone(phoneNumber);
+                response.put("user", userOptional);
             } else {
                 response.put("user", null);
             }
@@ -289,8 +289,8 @@ public class AuthController {
             response.put("exists", exists);
 
             if (exists) {
-                Optional<User> userOptional = userService.getUserByPhone(phoneNumber);
-                response.put("user", userOptional.orElse(null));
+                User userOptional = userService.getUserByPhone(phoneNumber);
+                response.put("user", userOptional);
             } else {
                 response.put("user", null);
             }
@@ -417,28 +417,61 @@ public class AuthController {
                 ));
             }
 
-            List<Booking> bookings = bookingService.getBookingsByCustomerPhone(phone);
+            User currentUser = user.get();
+            boolean isAdmin = "admin".equals(currentUser.getRole()) || Boolean.TRUE.equals(currentUser.getIsAdmin());
 
-            // Convert to DTOs with VehicleRepository
-            System.out.println("img : "+bookings.toString());
-            List<BookingResponse> bookingResponses = bookings.stream()
-                    .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
-                    .collect(Collectors.toList());
+            if (isAdmin) {
+                // For admin users, use the existing admin endpoints to get all bookings
+                List<Booking> upcomingBookings = bookingService.getUpcomingBookingsForAdmin();
+                List<Booking> completedBookings = bookingService.getCompletedBookingsForAdmin();
 
-            System.out.println("bookingResponses : "+bookingResponses.toString());
-            Map<String, Object> profile = Map.of(
-                    "user", user.get(),
-                    "bookings", bookingResponses,
-                    "totalBookings", bookings.size(),
-                    "activeBookings", bookings.stream().filter(b ->
-                            b.getStatus().equals("confirmed") || b.getStatus().equals("active")).count()
-            );
+                // Convert to DTOs
+                List<BookingResponse> upcomingResponses = upcomingBookings.stream()
+                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+                        .collect(Collectors.toList());
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "profile", profile
-            ));
+                List<BookingResponse> completedResponses = completedBookings.stream()
+                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+                        .collect(Collectors.toList());
+
+                Map<String, Object> profile = Map.of(
+                        "user", currentUser,
+                        "upcomingBookings", upcomingResponses,
+                        "completedBookings", completedResponses,
+                        "totalBookings", upcomingBookings.size() + completedBookings.size(),
+                        "upcomingCount", upcomingBookings.size(),
+                        "completedCount", completedBookings.size(),
+                        "isAdmin", true
+                );
+
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "profile", profile
+                ));
+            } else {
+                // Regular user flow (existing code)
+                List<Booking> bookings = bookingService.getBookingsByCustomerPhone(phone);
+
+                List<BookingResponse> bookingResponses = bookings.stream()
+                        .map(booking -> new BookingResponse(booking, booking.getVehicle().getImageUrl()))
+                        .collect(Collectors.toList());
+
+                Map<String, Object> profile = Map.of(
+                        "user", currentUser,
+                        "bookings", bookingResponses,
+                        "totalBookings", bookings.size(),
+                        "activeBookings", bookings.stream().filter(b ->
+                                b.getStatus().equals("confirmed") || b.getStatus().equals("active")).count(),
+                        "isAdmin", false
+                );
+
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "profile", profile
+                ));
+            }
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", e.getMessage()

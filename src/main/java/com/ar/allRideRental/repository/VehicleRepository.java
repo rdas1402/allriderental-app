@@ -9,16 +9,24 @@ import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
-    List<Vehicle> findByIsAvailableTrue();
-    List<Vehicle> findByCityAndIsAvailableTrue(String city);
-    List<Vehicle> findByTypeAndIsAvailableTrue(String type);
-    List<Vehicle> findByCityAndTypeAndIsAvailableTrue(String city, String type);
+    List<Vehicle> findByAvailableTrue();
+    List<Vehicle> findByCityAndAvailableTrue(String city);
+    List<Vehicle> findByTypeAndAvailableTrue(String type);
+    List<Vehicle> findByCityAndTypeAndAvailableTrue(String city, String type);
     
-    @Query("SELECT DISTINCT v.city FROM Vehicle v WHERE v.isAvailable = true")
+    @Query("SELECT DISTINCT v.city FROM Vehicle v WHERE v.available = true")
     List<String> findDistinctCities();
     
-    long countByTypeAndIsAvailableTrue(String type);
-    long countByCityAndIsAvailableTrue(String city);
-    long countByCityAndTypeAndIsAvailableTrue(String city, String type);
+    long countByTypeAndAvailableTrue(String type);
+    long countByCityAndAvailableTrue(String city);
+    long countByCityAndTypeAndAvailableTrue(String city, String type);
     Optional<Vehicle> findById(Long id);
+
+    long countByAvailable(Boolean available);
+
+    // If you have a status field
+    long countByStatus(String status);
+
+    // If you have an underMaintenance field
+    long countByUnderMaintenance(Boolean underMaintenance);
 }

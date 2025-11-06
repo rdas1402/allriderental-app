@@ -38,7 +38,7 @@ public class CityService {
         
         city.setName(cityDetails.getName());
         city.setState(cityDetails.getState());
-        city.setActive(cityDetails.isActive());
+        city.setIsActive(cityDetails.getIsActive());
         
         return cityRepository.save(city);
     }
@@ -46,7 +46,7 @@ public class CityService {
     public void deleteCity(Long id) {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("City not found with id: " + id));
-        city.setActive(false);
+        city.setIsActive(false);
         cityRepository.save(city);
     }
 }
